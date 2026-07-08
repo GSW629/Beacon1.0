@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beacon — Local Search &amp; AI Visibility Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181F;
+    --ink-soft:#1F2530;
+    --paper:#F7F5F0;
+    --paper-dim:#EDEAE2;
+    --beacon:#E8A33D;
+    --signal:#2FA88F;
+    --alert:#E2604F;
+    --slate:#8A8F98;
+    --slate-dark:#5B6069;
+    --line: rgba(20,24,31,0.12);
+    --line-soft: rgba(247,245,240,0.14);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px;}
+
+  /* Header */
+  .masthead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:22px;height:22px;flex:none;}
+  .brand-name{font-family:'Fraunces', serif;font-weight:600;font-size:20px;letter-spacing:-0.01em;}
+  .eyebrow{font-family:'IBM Plex Mono', monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--slate-dark);}
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:clamp(32px, 5vw, 44px);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+    margin:18px 0 10px;
+  }
+  h1 em{font-style:italic;color:var(--beacon);}
+  .sub{font-size:16px;color:var(--slate-dark);max-width:52ch;line-height:1.5;margin-bottom:36px;}
+
+  /* Card */
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px;
+    margin-bottom:20px;
+  }
+  .card-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    margin:0 0 4px;
+  }
+  .card-desc{font-size:13.5px;color:var(--slate-dark);margin:0 0 20px;line-height:1.5;}
+
+  /* Form */
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1/-1;}
+  label{font-size:12px;font-weight:600;color:var(--slate-dark);letter-spacing:0.01em;}
+  input[type=text]{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14.5px;
+    padding:11px 13px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:var(--paper);
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s;
+  }
+  input[type=text]:focus{border-color:var(--beacon);}
+  .hint{font-size:11.5px;color:var(--slate);margin-top:2px;}
+
+  button.primary{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    padding:13px 22px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .12s, background .15s;
+  }
+  button.primary:hover{background:var(--ink-soft);}
+  button.primary:active{transform:scale(0.98);}
+  button.primary:disabled{opacity:0.5;cursor:not-allowed;}
+  button.ghost{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    background:transparent;
+    color:var(--slate-dark);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 16px;
+    cursor:pointer;
+  }
+  button.ghost:hover{border-color:var(--slate-dark);color:var(--ink);}
+
+  .spinner{
+    width:14px;height:14px;border-radius:50%;
+    border:2px solid rgba(247,245,240,0.35);
+    border-top-color:var(--paper);
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Checklist */
+  .checklist{display:flex;flex-direction:column;gap:2px;}
+  .check-item{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:12px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:background .12s;
+  }
+  .check-item:hover{background:var(--paper);}
+  .check-item input{margin-top:3px;accent-color:var(--signal);width:16px;height:16px;flex:none;cursor:pointer;}
+  .check-item .txt{display:flex;flex-direction:column;gap:2px;}
+  .check-item .txt-title{font-size:14px;font-weight:500;}
+  .check-item .txt-sub{font-size:12.5px;color:var(--slate);line-height:1.4;}
+  .check-weight{
+    margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    color:var(--slate);white-space:nowrap;padding-top:3px;
+  }
+
+  /* Results header / score */
+  .score-panel{
+    display:flex;align-items:center;gap:24px;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:var(--radius);
+    padding:28px;
+    margin-bottom:20px;
+  }
+  .gauge{position:relative;width:112px;height:112px;flex:none;}
+  .gauge svg{transform:rotate(-90deg);}
+  .gauge-label{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+  }
+  .gauge-num{font-family:'Fraunces',serif;font-weight:600;font-size:30px;line-height:1;}
+  .gauge-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--slate);letter-spacing:0.08em;text-transform:uppercase;margin-top:3px;}
+  .score-text .score-title{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin-bottom:6px;}
+  .score-text .score-desc{font-size:13.5px;color:#B8BCC4;line-height:1.5;max-width:44ch;}
+  .beam-split{display:flex;gap:18px;margin-top:14px;}
+  .beam{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .beam-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+
+  /* Two column results */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:680px){.two-col{grid-template-columns:1fr;} .field-row{grid-template-columns:1fr;}}
+
+  .result-card{border:1px solid var(--line);border-radius:var(--radius);padding:22px;background:#fff;}
+  .result-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .result-head .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .result-head h3{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0;}
+
+  .query-item{border-top:1px solid var(--line);padding:12px 0;}
+  .query-item:first-child{border-top:none;padding-top:0;}
+  .query-q{font-size:13px;color:var(--slate-dark);margin-bottom:6px;font-style:italic;}
+  .query-result{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;}
+  .badge{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;
+    padding:3px 8px;border-radius:20px;letter-spacing:0.03em;
+  }
+  .badge.yes{background:rgba(47,168,143,0.14);color:#1E7A67;}
+  .badge.no{background:rgba(226,96,79,0.12);color:#B8493A;}
+  .query-note{font-size:12.5px;color:var(--slate);margin-top:4px;line-height:1.5;}
+
+  /* Action list */
+  .action-item{
+    display:flex;gap:14px;padding:16px 0;border-top:1px solid var(--line);
+  }
+  .action-item:first-child{border-top:none;padding-top:4px;}
+  .action-num{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+    color:var(--paper);background:var(--beacon);
+    width:24px;height:24px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;flex:none;margin-top:2px;
+  }
+  .action-item.high .action-num{background:var(--alert);}
+  .action-item.med .action-num{background:var(--beacon);}
+  .action-item.low .action-num{background:var(--signal);}
+  .action-body .action-title{font-weight:600;font-size:14.5px;margin-bottom:3px;}
+  .action-body .action-desc{font-size:13px;color:var(--slate-dark);line-height:1.5;}
+  .action-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--slate);margin-top:5px;display:block;
+  }
+
+  .footer-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
+
+  .error-box{
+    background:rgba(226,96,79,0.08);border:1px solid rgba(226,96,79,0.3);
+    color:#B8493A;padding:14px 16px;border-radius:8px;font-size:13.5px;margin-bottom:16px;
+  }
+
+  #results{display:none;}
+  .loading-row{display:flex;align-items:center;gap:10px;color:var(--slate-dark);font-size:13.5px;padding:20px 0;}
+
+  /* Nav */
+  .topnav{
+    background:var(--ink);
+    padding:14px 24px;
+  }
+  .topnav-inner{
+    max-width:880px;margin:0 auto;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .topnav-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--paper);}
+  .topnav-brand span{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
+  .topnav-links{display:flex;gap:22px;}
+  .topnav-links a{
+    color:#B8BCC4;text-decoration:none;font-size:13.5px;font-weight:500;
+    transition:color .15s;
+  }
+  .topnav-links a:hover, .topnav-links a.active{color:var(--paper);}
+
+  /* Growth estimate */
+  .growth-card{
+    background:linear-gradient(135deg, var(--ink) 0%, #232B38 100%);
+    color:var(--paper);
+    border-radius:var(--radius);
+    padding:28px;
+    margin-top:16px;
+  }
+  .growth-card .card-title{color:var(--paper);}
+  .growth-card .card-desc{color:#B8BCC4;}
+  .growth-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  @media (max-width:680px){.growth-stats{grid-template-columns:1fr;}}
+  .growth-stat{
+    background:rgba(247,245,240,0.06);
+    border:1px solid rgba(247,245,240,0.14);
+    border-radius:8px;
+    padding:18px;
+  }
+  .growth-stat .g-label{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;
+    letter-spacing:0.08em;color:var(--beacon);margin-bottom:6px;
+  }
+  .growth-stat .g-num{font-family:'Fraunces',serif;font-weight:600;font-size:26px;line-height:1.1;}
+  .growth-stat .g-sub{font-size:12.5px;color:#B8BCC4;margin-top:4px;line-height:1.4;}
+  .growth-disclaimer{
+    font-size:11.5px;color:#8A8F98;margin-top:16px;line-height:1.5;
+    border-top:1px solid rgba(247,245,240,0.12);padding-top:14px;
+  }
+  .cta-band{
+    margin-top:20px;padding-top:20px;border-top:1px solid rgba(247,245,240,0.14);
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  }
+  .cta-band .cta-text{font-size:14px;color:var(--paper);max-width:38ch;line-height:1.5;}
+  .cta-band button{
+    background:var(--beacon);color:var(--ink);border:none;border-radius:8px;
+    padding:12px 20px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap;
+  }
+
+  @media print{
+    body{background:#fff;}
+    button, .no-print{display:none !important;}
+    .card, .result-card, .score-panel{box-shadow:none;border:1px solid #ccc;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="index.html" class="topnav-brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="3" fill="#E8A33D"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#F7F5F0" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M5.5 5.5l2.8 2.8M18.5 5.5l-2.8 2.8M5.5 18.5l2.8-2.8M18.5 18.5l-2.8-2.8" stroke="#8A8F98" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <span>Beacon</span>
+    </a>
+    <div class="topnav-links">
+      <a href="index.html">Home</a>
+      <a href="tool.html" class="active">Free Tool</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="eyebrow">Free Visibility Audit Tool</span>
+  </div>
+
+  <h1>Can people actually <em>find</em> this business?</h1>
+  <p class="sub">Check how a business shows up in two places customers search now: Google, and AI answers like ChatGPT — free, in about a minute. You'll also get an estimate of how much room there is to grow.</p>
+
+  <div class="card">
+    <p class="card-title">1. Business details</p>
+    <p class="card-desc">The more specific, the better the AI-answer check will be.</p>
+    <div class="field-row">
+      <div class="field">
+        <label for="bizName">Business name</label>
+        <input type="text" id="bizName" placeholder="e.g. Riverside Plumbing Co." />
+      </div>
+      <div class="field">
+        <label for="bizIndustry">Industry / service</label>
+        <input type="text" id="bizIndustry" placeholder="e.g. plumber, coffee shop, dentist" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="bizCity">City / area</label>
+        <input type="text" id="bizCity" placeholder="e.g. Wilmington, NC" />
+      </div>
+      <div class="field">
+        <label for="bizWebsite">Website (optional)</label>
+        <input type="text" id="bizWebsite" placeholder="e.g. riversideplumbing.com" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">2. Growth estimate inputs <span style="font-weight:400;color:var(--slate);">(optional)</span></p>
+    <p class="card-desc">Add these for a dollar estimate. Skip them and you'll still get a growth range.</p>
+    <div class="field-row">
+      <div class="field">
+        <label for="bizCustomers">New customers per month, roughly</label>
+        <input type="text" id="bizCustomers" placeholder="e.g. 20" />
+      </div>
+      <div class="field">
+        <label for="bizValue">Average value per customer ($)</label>
+        <input type="text" id="bizValue" placeholder="e.g. 150" />
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">3. Quick SEO checklist</p>
+    <p class="card-desc">Check off what's already true. Answer honestly — this is what builds the action list.</p>
+    <div class="checklist" id="checklist"></div>
+  </div>
+
+  <div id="errorBox"></div>
+
+  <button class="primary" id="runBtn" onclick="runAudit()">
+    <span id="runBtnText">Run visibility check</span>
+  </button>
+
+  <div id="results">
+
+    <div class="score-panel">
+      <div class="gauge">
+        <svg width="112" height="112" viewBox="0 0 112 112">
+          <circle cx="56" cy="56" r="48" fill="none" stroke="rgba(247,245,240,0.15)" stroke-width="10"/>
+          <circle id="gaugeArc" cx="56" cy="56" r="48" fill="none" stroke="#E8A33D" stroke-width="10" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="301.6"/>
+        </svg>
+        <div class="gauge-label">
+          <div class="gauge-num" id="gaugeNum">0</div>
+          <div class="gauge-sub">out of 100</div>
+        </div>
+      </div>
+      <div class="score-text">
+        <div class="score-title" id="scoreTitle">Visibility Score</div>
+        <div class="score-desc" id="scoreDesc">—</div>
+        <div class="beam-split">
+          <div class="beam"><span class="beam-dot" style="background:#2FA88F"></span><span id="seoBeamLabel">SEO —</span></div>
+          <div class="beam"><span class="beam-dot" style="background:#E8A33D"></span><span id="geoBeamLabel">AI answers —</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="result-card">
+        <div class="result-head"><span class="dot" style="background:#2FA88F"></span><h3>Google &amp; search basics</h3></div>
+        <div id="seoDetail"></div>
+      </div>
+      <div class="result-card">
+        <div class="result-head"><span class="dot" style="background:#E8A33D"></span><h3>AI answer visibility</h3></div>
+        <div id="geoDetail"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <p class="card-title">Priority action list</p>
+      <p class="card-desc">Ranked by impact — do these in order.</p>
+      <div id="actionList"></div>
+    </div>
+
+    <div class="growth-card">
+      <p class="card-title">Estimated growth potential</p>
+      <p class="card-desc">Based on the visibility gap found above and typical patterns for local service businesses. This is a directional estimate, not a guarantee — actual results depend on execution and market.</p>
+      <div class="growth-stats">
+        <div class="growth-stat">
+          <div class="g-label">Potential lift in inquiries</div>
+          <div class="g-num" id="growthPct">—</div>
+          <div class="g-sub" id="growthPctSub">Typical range for this visibility gap over 3–6 months of consistent fixes.</div>
+        </div>
+        <div class="growth-stat">
+          <div class="g-label">Estimated added revenue / month</div>
+          <div class="g-num" id="growthRevenue">Add customer info above</div>
+          <div class="g-sub" id="growthRevenueSub">Fill in monthly customers and average value for a dollar estimate.</div>
+        </div>
+      </div>
+      <div class="growth-disclaimer">
+        Estimate method: businesses closing more of their visibility gap typically see meaningful gains in inbound inquiries over 3–6 months of consistent work — this is directional, drawn from general industry patterns for local service businesses, not a measurement of this specific business's traffic. Actual results vary by market, competition, and execution.
+      </div>
+      <div class="cta-band">
+        <div class="cta-text">Want someone to actually close this gap for you?</div>
+        <button onclick="alert('Wire this up to your contact form or booking link.')">Get a free consult</button>
+      </div>
+    </div>
+
+    <div class="footer-actions no-print">
+      <button class="ghost" onclick="window.print()">Print / save as PDF</button>
+      <button class="ghost" onclick="location.reload()">Start new audit</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+const CHECKLIST_ITEMS = [
+  {id:'gbp_claimed', title:'Google Business Profile is claimed & verified', sub:'The free listing that shows up in Maps and local search.', weight:15},
+  {id:'gbp_complete', title:'Profile has hours, category, photos, and description filled in', sub:'Incomplete profiles rank lower and convert worse.', weight:10},
+  {id:'reviews_10', title:'Has 10+ Google reviews', sub:'Review count and recency are a major local ranking signal.', weight:12},
+  {id:'reviews_respond', title:'Owner responds to reviews (good and bad)', sub:'Signals an active, trustworthy business.', weight:6},
+  {id:'website_exists', title:'Has a live website', sub:'Even a single well-built page helps.', weight:10},
+  {id:'website_mobile', title:'Website looks good and works on mobile', sub:'Most local searches happen on phones.', weight:8},
+  {id:'nap_consistent', title:'Name, address, phone match everywhere online', sub:'Inconsistent info confuses both Google and AI tools.', weight:9},
+  {id:'faq_content', title:'Website answers common customer questions directly', sub:'This is exactly what AI tools pull from to cite a business.', weight:10},
+  {id:'social_active', title:'At least one social profile is active/updated', sub:'Recent posts signal the business is real and operating.', weight:6},
+  {id:'local_content', title:'Website mentions the specific city/neighborhood served', sub:'Helps both map-pack ranking and AI location matching.', weight:8},
+];
+
+function buildChecklist(){
+  const el = document.getElementById('checklist');
+  el.innerHTML = CHECKLIST_ITEMS.map(item => `
+    <label class="check-item">
+      <input type="checkbox" id="chk_${item.id}" data-weight="${item.weight}">
+      <div class="txt">
+        <span class="txt-title">${item.title}</span>
+        <span class="txt-sub">${item.sub}</span>
+      </div>
+      <span class="check-weight">+${item.weight}</span>
+    </label>
+  `).join('');
+}
+buildChecklist();
+
+function showError(msg){
+  document.getElementById('errorBox').innerHTML = `<div class="error-box">${msg}</div>`;
+}
+function clearError(){
+  document.getElementById('errorBox').innerHTML = '';
+}
+
+async function runAudit(){
+  clearError();
+  const name = document.getElementById('bizName').value.trim();
+  const industry = document.getElementById('bizIndustry').value.trim();
+  const city = document.getElementById('bizCity').value.trim();
+  const website = document.getElementById('bizWebsite').value.trim();
+
+  if(!name || !industry || !city){
+    showError('Fill in business name, industry, and city — the AI-answer check needs all three to run realistic queries.');
+    return;
+  }
+
+  const btn = document.getElementById('runBtn');
+  const btnText = document.getElementById('runBtnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="spinner"></span> Checking AI answers…';
+
+  // SEO checklist score
+  let seoRaw = 0, seoMax = 0;
+  const seoChecked = [];
+  const seoUnchecked = [];
+  CHECKLIST_ITEMS.forEach(item => {
+    seoMax += item.weight;
+    const box = document.getElementById('chk_' + item.id);
+    if(box.checked){ seoRaw += item.weight; seoChecked.push(item); }
+    else { seoUnchecked.push(item); }
+  });
+  const seoScore = Math.round((seoRaw / seoMax) * 100);
+
+  // GEO check via Claude
+  let geoResult;
+  try{
+    geoResult = await runGeoCheck(name, industry, city, website);
+  }catch(e){
+    btn.disabled = false;
+    btnText.textContent = 'Run visibility check';
+    showError('Could not complete the AI-answer check (' + e.message + '). Try again in a moment.');
+    return;
+  }
+
+  btn.disabled = false;
+  btnText.textContent = 'Re-run check';
+
+  renderResults({name, industry, city, seoScore, seoChecked, seoUnchecked, geoResult});
+}
+
+async function runGeoCheck(name, industry, city, website){
+  const prompt = `You are simulating how a helpful AI assistant answers real customer search questions. A user is checking whether their business shows up when people ask AI tools for recommendations.
+
+Business: "${name}"
+Industry: ${industry}
+Location: ${city}
+${website ? 'Website: ' + website : ''}
+
+Generate exactly 4 realistic questions a potential customer in ${city} might ask an AI assistant to find a business like this (vary phrasing — some broad, some specific, include one with "near me" style local intent and one comparison-style question).
+
+For each question, answer it as you genuinely would if a user asked you right now (using your real knowledge of businesses in that area if you have any — if you don't have specific knowledge of this exact business, be honest about that rather than inventing facts). Then note whether "${name}" specifically appears in your answer.
+
+Respond ONLY with valid JSON, no markdown fences, no preamble, in this exact shape:
+{
+  "queries": [
+    {"question": "...", "mentioned": true or false, "note": "one sentence explaining why it was or wasn't mentioned, or what would need to be true for it to show up"}
+  ],
+  "overall_geo_note": "one or two sentence honest summary of this business's current AI-answer visibility and the single biggest lever to improve it"
+}`;
+
+  // Replace with your own Cloudflare Worker URL from Part 2
+  const WORKER_URL = "https://beacon-proxy.YOUR-SUBDOMAIN.workers.dev";
+
+  const response = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if(!response.ok){
+    throw new Error('API error ' + response.status);
+  }
+
+  const data = await response.json();
+  const textBlock = (data.content || []).find(b => b.type === 'text');
+  if(!textBlock) throw new Error('no response');
+
+  let cleaned = textBlock.text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  let parsed;
+  try{
+    parsed = JSON.parse(cleaned);
+  }catch(e){
+    throw new Error('could not parse result');
+  }
+  return parsed;
+}
+
+function renderResults({name, industry, city, seoScore, seoChecked, seoUnchecked, geoResult}){
+  const mentionedCount = geoResult.queries.filter(q => q.mentioned).length;
+  const geoScore = Math.round((mentionedCount / geoResult.queries.length) * 100);
+  const overall = Math.round(seoScore * 0.55 + geoScore * 0.45);
+
+  // Gauge
+  const circumference = 301.6;
+  const offset = circumference - (overall/100)*circumference;
+  document.getElementById('gaugeArc').style.strokeDashoffset = offset;
+  document.getElementById('gaugeArc').style.stroke = overall >= 70 ? '#2FA88F' : overall >= 40 ? '#E8A33D' : '#E2604F';
+  document.getElementById('gaugeNum').textContent = overall;
+
+  document.getElementById('scoreTitle').textContent = `${name} — Visibility Score`;
+  let desc;
+  if(overall >= 70) desc = `Strong presence. ${name} is discoverable in most of the places customers actually look.`;
+  else if(overall >= 40) desc = `Mixed visibility — showing up in some searches, invisible in others. Clear room to grow.`;
+  else desc = `Low visibility right now. Most customers searching for a ${industry} in ${city} likely won't find ${name} yet.`;
+  document.getElementById('scoreDesc').textContent = desc;
+
+  document.getElementById('seoBeamLabel').textContent = `SEO ${seoScore}/100`;
+  document.getElementById('geoBeamLabel').textContent = `AI answers ${geoScore}/100`;
+
+  // SEO detail
+  const seoDetailEl = document.getElementById('seoDetail');
+  seoDetailEl.innerHTML = `
+    <div style="font-size:13.5px;color:var(--slate-dark);margin-bottom:10px;">
+      <strong style="color:var(--ink);">${seoChecked.length} of ${CHECKLIST_ITEMS.length}</strong> fundamentals in place.
+    </div>
+    ${seoUnchecked.slice(0,4).map(item => `
+      <div class="query-item">
+        <div class="query-result"><span class="badge no">MISSING</span> ${item.title}</div>
+      </div>
+    `).join('') || '<div class="query-note">All checklist items are covered — nice foundation.</div>'}
+  `;
+
+  // GEO detail
+  const geoDetailEl = document.getElementById('geoDetail');
+  geoDetailEl.innerHTML = geoResult.queries.map(q => `
+    <div class="query-item">
+      <div class="query-q">"${escapeHtml(q.question)}"</div>
+      <div class="query-result">
+        <span class="badge ${q.mentioned ? 'yes' : 'no'}">${q.mentioned ? 'MENTIONED' : 'NOT MENTIONED'}</span>
+      </div>
+      <div class="query-note">${escapeHtml(q.note)}</div>
+    </div>
+  `).join('') + `<div class="query-note" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);"><strong style="color:var(--ink);">Summary:</strong> ${escapeHtml(geoResult.overall_geo_note)}</div>`;
+
+  // Action list — combine top missing SEO items + GEO note into prioritized list
+  const actions = [];
+  seoUnchecked.forEach(item => {
+    actions.push({
+      priority: item.weight >= 10 ? 'high' : item.weight >= 7 ? 'med' : 'low',
+      title: item.title,
+      desc: item.sub,
+      tag: 'Search'
+    });
+  });
+  actions.push({
+    priority: geoScore < 50 ? 'high' : 'med',
+    title: 'Improve AI-answer visibility',
+    desc: geoResult.overall_geo_note,
+    tag: 'AI Answers'
+  });
+  const order = {high:0, med:1, low:2};
+  actions.sort((a,b) => order[a.priority] - order[b.priority]);
+
+  document.getElementById('actionList').innerHTML = actions.map((a, i) => `
+    <div class="action-item ${a.priority}">
+      <div class="action-num">${i+1}</div>
+      <div class="action-body">
+        <div class="action-title">${escapeHtml(a.title)}</div>
+        <div class="action-desc">${escapeHtml(a.desc)}</div>
+        <span class="action-tag">${a.tag} · ${a.priority} priority</span>
+      </div>
+    </div>
+  `).join('');
+
+  renderGrowthEstimate(overall);
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderGrowthEstimate(overallScore){
+  const gap = 100 - overallScore;
+  // Directional lift bands based on how large the visibility gap is.
+  // These are illustrative ranges, not a measurement of real traffic.
+  let low, high;
+  if(gap >= 60){ low = 30; high = 50; }
+  else if(gap >= 35){ low = 15; high = 30; }
+  else if(gap >= 15){ low = 8; high = 15; }
+  else { low = 3; high = 8; }
+
+  document.getElementById('growthPct').textContent = `${low}–${high}%`;
+  document.getElementById('growthPctSub').textContent = `Estimated range based on the size of the visibility gap found (${gap} points).`;
+
+  const customersRaw = document.getElementById('bizCustomers').value.trim();
+  const valueRaw = document.getElementById('bizValue').value.trim();
+  const customers = parseFloat(customersRaw);
+  const value = parseFloat(valueRaw);
+
+  const revEl = document.getElementById('growthRevenue');
+  const revSubEl = document.getElementById('growthRevenueSub');
+
+  if(!isNaN(customers) && !isNaN(value) && customers > 0 && value > 0){
+    const lowAdd = Math.round(customers * (low/100));
+    const highAdd = Math.round(customers * (high/100));
+    const lowRev = Math.round(lowAdd * value);
+    const highRev = Math.round(highAdd * value);
+    revEl.textContent = `$${lowRev.toLocaleString()}–$${highRev.toLocaleString()}`;
+    revSubEl.textContent = `Based on ${lowAdd}–${highAdd} additional customers/month at $${value}/customer.`;
+  } else {
+    revEl.textContent = 'Add customer info above';
+    revSubEl.textContent = 'Fill in monthly customers and average value for a dollar estimate.';
+  }
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
