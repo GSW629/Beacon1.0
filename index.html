@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beacon — Get Found on Google &amp; AI Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181F;
+    --ink-soft:#1F2530;
+    --paper:#F7F5F0;
+    --paper-dim:#EDEAE2;
+    --beacon:#E8A33D;
+    --signal:#2FA88F;
+    --alert:#E2604F;
+    --slate:#8A8F98;
+    --slate-dark:#5B6069;
+    --line: rgba(20,24,31,0.12);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans', sans-serif;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+
+  /* Nav */
+  .topnav{background:var(--ink);padding:14px 24px;}
+  .topnav-inner{max-width:1040px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+  .topnav-brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--paper);}
+  .topnav-brand span{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
+  .topnav-links{display:flex;align-items:center;gap:22px;}
+  .topnav-links a{color:#B8BCC4;text-decoration:none;font-size:13.5px;font-weight:500;transition:color .15s;}
+  .topnav-links a:hover, .topnav-links a.active{color:var(--paper);}
+  .topnav-cta{
+    background:var(--beacon);color:var(--ink);padding:8px 16px;border-radius:7px;
+    font-weight:600;font-size:13px;text-decoration:none;
+  }
+
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px;}
+
+  /* Hero */
+  .hero{padding:88px 0 72px;text-align:center;}
+  .hero-eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--slate-dark);display:inline-flex;align-items:center;gap:8px;margin-bottom:22px;
+  }
+  .hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--beacon);}
+  h1.hero-title{
+    font-family:'Fraunces', serif;font-weight:500;font-size:clamp(38px, 6vw, 62px);
+    line-height:1.04;letter-spacing:-0.015em;margin:0 auto 22px;max-width:16ch;
+  }
+  h1.hero-title em{font-style:italic;color:var(--beacon);}
+  .hero-sub{font-size:18px;color:var(--slate-dark);max-width:52ch;margin:0 auto 36px;line-height:1.55;}
+  .hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--ink);color:var(--paper);text-decoration:none;font-weight:600;font-size:15px;
+    padding:15px 26px;border-radius:9px;display:inline-flex;align-items:center;gap:8px;
+    transition:background .15s;
+  }
+  .btn-primary:hover{background:var(--ink-soft);}
+  .btn-secondary{
+    background:transparent;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;
+    padding:15px 26px;border-radius:9px;border:1px solid var(--line);
+  }
+  .btn-secondary:hover{border-color:var(--slate-dark);}
+
+  /* Beam illustration */
+  .beam-illustration{margin:56px auto 0;max-width:640px;}
+
+  /* Section: problem */
+  .section{padding:64px 0;}
+  .section-label{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--slate-dark);margin-bottom:14px;
+  }
+  .section h2{
+    font-family:'Fraunces',serif;font-weight:500;font-size:clamp(26px,3.4vw,34px);
+    line-height:1.15;letter-spacing:-0.01em;margin:0 0 16px;max-width:22ch;
+  }
+  .section p.lead{font-size:16px;color:var(--slate-dark);max-width:58ch;line-height:1.6;}
+
+  .two-split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;}
+  @media (max-width:760px){.two-split{grid-template-columns:1fr;}}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:36px;}
+  @media (max-width:760px){.stat-row{grid-template-columns:1fr;}}
+  .stat{border-top:2px solid var(--ink);padding-top:14px;}
+  .stat .stat-num{font-family:'Fraunces',serif;font-weight:600;font-size:32px;line-height:1;}
+  .stat .stat-label{font-size:13px;color:var(--slate-dark);margin-top:8px;line-height:1.4;}
+
+  /* Services grid */
+  .services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px;}
+  @media (max-width:760px){.services-grid{grid-template-columns:1fr;}}
+  .service-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px;
+  }
+  .service-card .s-num{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--beacon);font-weight:600;
+    letter-spacing:0.06em;margin-bottom:14px;display:block;
+  }
+  .service-card h3{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0 0 8px;}
+  .service-card p{font-size:13.5px;color:var(--slate-dark);line-height:1.55;margin:0;}
+
+  /* Tool CTA band */
+  .tool-band{
+    background:var(--ink);color:var(--paper);border-radius:16px;padding:52px 40px;
+    text-align:center;margin:64px 0;
+  }
+  .tool-band h2{color:var(--paper);margin:0 auto 14px;}
+  .tool-band p{color:#B8BCC4;max-width:48ch;margin:0 auto 28px;font-size:15.5px;line-height:1.6;}
+  .tool-band .btn-primary{background:var(--beacon);color:var(--ink);}
+  .tool-band .btn-primary:hover{background:#f0b055;}
+
+  /* Pricing */
+  .pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px;}
+  @media (max-width:760px){.pricing-grid{grid-template-columns:1fr;}}
+  .price-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:32px;
+    display:flex;flex-direction:column;
+  }
+  .price-card.featured{border:2px solid var(--beacon);position:relative;}
+  .price-tag{
+    position:absolute;top:-11px;left:28px;background:var(--beacon);color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.06em;
+    padding:4px 10px;border-radius:20px;text-transform:uppercase;
+  }
+  .price-card h3{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin:0 0 6px;}
+  .price-card .price{font-family:'Fraunces',serif;font-size:34px;font-weight:600;margin:10px 0 4px;}
+  .price-card .price span{font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:500;color:var(--slate-dark);}
+  .price-card ul{list-style:none;padding:0;margin:20px 0 24px;display:flex;flex-direction:column;gap:10px;}
+  .price-card li{font-size:13.5px;color:var(--slate-dark);display:flex;gap:9px;line-height:1.5;}
+  .price-card li::before{content:'✓';color:var(--signal);font-weight:700;flex:none;}
+
+  footer{border-top:1px solid var(--line);padding:36px 0;margin-top:24px;}
+  .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+  .footer-inner .fbrand{font-family:'Fraunces',serif;font-weight:600;font-size:15px;}
+  .footer-inner .fnote{font-size:12.5px;color:var(--slate);}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="index.html" class="topnav-brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="3" fill="#E8A33D"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#F7F5F0" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M5.5 5.5l2.8 2.8M18.5 5.5l-2.8 2.8M5.5 18.5l2.8-2.8M18.5 18.5l-2.8-2.8" stroke="#8A8F98" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <span>Beacon</span>
+    </a>
+    <div class="topnav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="tool.html">Free Tool</a>
+      <a href="tool.html" class="topnav-cta">Check my visibility</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="hero-eyebrow"><span class="dot"></span> Local search + AI visibility for small businesses</div>
+    <h1 class="hero-title">Your customers are searching. Are you <em>showing up?</em></h1>
+    <p class="hero-sub">Most small businesses are invisible in at least one of the places people now search — Google, or AI tools like ChatGPT. Beacon finds the gap and closes it.</p>
+    <div class="hero-ctas">
+      <a href="tool.html" class="btn-primary">Run a free visibility check →</a>
+      <a href="#services" class="btn-secondary">See what's included</a>
+    </div>
+  </section>
+</div>
+
+<div class="wrap">
+  <section class="section">
+    <div class="two-split">
+      <div>
+        <p class="section-label">The problem</p>
+        <h2>Search changed. Most local businesses didn't.</h2>
+        <p class="lead">People don't just Google things anymore — they ask ChatGPT, Perplexity, and Google's AI Overviews for recommendations. If your business isn't structured to show up there, you're losing customers to competitors who are, before a search results page even loads.</p>
+      </div>
+      <div>
+        <div class="stat-row" style="grid-template-columns:1fr;">
+          <div class="stat">
+            <div class="stat-num">2</div>
+            <div class="stat-label">places customers search now — traditional Google, and AI answers. Most businesses only optimize for one, if either.</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">Free</div>
+            <div class="stat-label">to find out where you stand — no commitment, results in about a minute.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="services">
+    <p class="section-label">What Beacon does</p>
+    <h2>Three things, done well</h2>
+    <p class="lead">No bloated retainer, no jargon. Just the specific work that gets a small business found.</p>
+    <div class="services-grid">
+      <div class="service-card">
+        <span class="s-num">01</span>
+        <h3>Google Business Profile</h3>
+        <p>Claimed, complete, and actively managed — photos, hours, posts, and review responses. The free listing most owners half-ignore.</p>
+      </div>
+      <div class="service-card">
+        <span class="s-num">02</span>
+        <h3>AI answer visibility</h3>
+        <p>We check whether your business actually gets mentioned when people ask AI tools for a recommendation — then fix what's stopping it.</p>
+      </div>
+      <div class="service-card">
+        <span class="s-num">03</span>
+        <h3>Monthly reporting</h3>
+        <p>A plain-English update each month: what changed, what's working, what's next. No dashboards to decode.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="tool-band">
+    <p class="section-label" style="color:#B8BCC4;">Start here</p>
+    <h2>Find your visibility score, free</h2>
+    <p>Answer a few questions about your business and get a real score — how you show up on Google, how you show up in AI answers, and an estimate of how much room there is to grow.</p>
+    <a href="tool.html" class="btn-primary">Run my free check →</a>
+  </div>
+
+  <section class="section">
+    <p class="section-label">Pricing</p>
+    <h2>Start free. Upgrade when you see the gap.</h2>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Visibility Check</h3>
+        <div class="price">Free</div>
+        <ul>
+          <li>Full SEO + AI visibility score</li>
+          <li>Growth potential estimate</li>
+          <li>Prioritized action list</li>
+          <li>No account or commitment needed</li>
+        </ul>
+        <a href="tool.html" class="btn-secondary" style="text-align:center;margin-top:auto;">Run the check</a>
+      </div>
+      <div class="price-card featured">
+        <span class="price-tag">Most common</span>
+        <h3>Managed Growth</h3>
+        <div class="price">$99<span>/month</span></div>
+        <ul>
+          <li>Everything in the free check, monitored monthly</li>
+          <li>Google Business Profile management</li>
+          <li>AI visibility fixes implemented for you</li>
+          <li>Monthly plain-English report</li>
+        </ul>
+        <a href="#" class="btn-primary" style="text-align:center;margin-top:auto;">Get started</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <span class="fbrand">Beacon</span>
+    <span class="fnote">Local search &amp; AI visibility for small businesses</span>
+  </div>
+</footer>
+
+</body>
+</html>
