@@ -535,7 +535,7 @@ Respond ONLY with valid JSON, no markdown fences, no preamble, in this exact sha
 }`;
 
   // Replace with your own Cloudflare Worker URL from Part 2
-  const WORKER_URL = "https://beacon-proxy.YOUR-SUBDOMAIN.workers.dev";
+  const WORKER_URL = "https://beacon-middleman.gabesw629.workers.dev";
 
   const response = await fetch(WORKER_URL, {
     method: "POST",
